@@ -1,0 +1,677 @@
+{
+  "info": {
+    "name": "CreditVana Backend API - v3",
+    "description": "Complete API collection for CreditVana frontend integration. All endpoints for authentication, profile, credit data, and billing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "3.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "test@example.com",
+      "type": "string"
+    },
+    {
+      "key": "user_password",
+      "value": "password123",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "description": "Core user access and session management",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('access_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('kba_passed', jsonData.kba_passed);",
+                  "    console.log('Access token saved:', jsonData.access_token);",
+                  "    console.log('KBA Status:', jsonData.kba_passed === 1 ? 'Verified' : 'Unverified');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            },
+            "description": "Authenticate user credentials and retrieve access token. Use for Login Screen."
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('access_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('kba_passed', jsonData.kba_passed);",
+                  "    console.log('User registered successfully');",
+                  "    console.log('Access token:', jsonData.access_token);",
+                  "    console.log('Membership No:', jsonData.idiq_response.membershipNo);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"dob\": \"1990-05-20\",\n  \"ssn\": \"666-12-1234\",\n  \"phone\": \"555-555-5555\",\n  \"street\": \"123 Beverly Dr\",\n  \"city\": \"Beverly Hills\",\n  \"state\": \"CA\",\n  \"zip\": \"90210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["register"]
+            },
+            "description": "Create new user account and enroll in IDIQ monitoring. This is a blocking operation. Use for Registration Screen."
+          },
+          "response": []
+        },
+        {
+          "name": "Login via Email (Request OTP)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login-via-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["login-via-email"]
+            },
+            "description": "Request a login Magic Link / OTP via email. User will receive OTP code."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('access_token', jsonData.access_token);",
+                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "    console.log('Logged in via OTP');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"12345\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/verify-login-via-email-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["verify-login-via-email-otp"]
+            },
+            "description": "Complete login with OTP code sent via email. Returns same auth payload as /login."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["forgot-password"]
+            },
+            "description": "Send password reset link/OTP to user's email."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('access_token');",
+                  "    pm.collectionVariables.set('access_token', '');",
+                  "    console.log('Logged out successfully');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["logout"]
+            },
+            "description": "Invalidate current session/token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. User Profile",
+      "description": "Manage user account details",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings"]
+            },
+            "description": "Retrieve current user details. Use for Settings / Profile Page."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Johnny\",\n  \"phone\": \"999-999-9999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["settings"]
+            },
+            "description": "Update personal information. Partial updates allowed."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"oldPassword\",\n  \"password\": \"newPassword\",\n  \"password_confirmation\": \"newPassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/password/change",
+              "host": ["{{baseUrl}}"],
+              "path": ["password", "change"]
+            },
+            "description": "Change user password. Requires current password."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/account/delete",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "delete"]
+            },
+            "description": "Permanently delete user account and cancel subscriptions."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Identity Verification (KBA)",
+      "description": "Knowledge-Based Authentication flow",
+      "item": [
+        {
+          "name": "Fetch Verification Questions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/idiq/verification-questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["idiq", "verification-questions"]
+            },
+            "description": "Retrieve KBA questions from IDIQ. Use for KBA Modal / Screen."
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Verification Answers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    {\n      \"questionId\": \"q1\",\n      \"answer\": \"Sunset Blvd\"\n    },\n    {\n      \"questionId\": \"q2\",\n      \"answer\": \"Ford\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/idiq/verification-answers",
+              "host": ["{{baseUrl}}"],
+              "path": ["idiq", "verification-answers"]
+            },
+            "description": "Submit user answers for validation. Status can be: Correct, Incorrect, MoreQuestions, accountCodeMissing. Frontend should handle each status accordingly."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Credit Data & Dashboard",
+      "description": "Credit scores, reports, and summaries",
+      "item": [
+        {
+          "name": "Get Credit Score (Dashboard)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/credit-score",
+              "host": ["{{baseUrl}}"],
+              "path": ["credit-score"]
+            },
+            "description": "Optimized endpoint for Dashboard overview. Includes Score + Quick View Summary. Use for Dashboard Home."
+          },
+          "response": []
+        },
+        {
+          "name": "Order Credit Score",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/idiq/credit-score/order",
+              "host": ["{{baseUrl}}"],
+              "path": ["idiq", "credit-score", "order"]
+            },
+            "description": "Force refresh of credit score from IDIQ."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Full Credit Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/idiq/credit-report",
+              "host": ["{{baseUrl}}"],
+              "path": ["idiq", "credit-report"]
+            },
+            "description": "Retrieve detailed credit report (tradelines, hard inquiries, etc.). Use for Credit Report Page."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Subscription & Billing",
+      "description": "Plan management",
+      "item": [
+        {
+          "name": "Upgrade to Premium",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/upgrade",
+              "host": ["{{baseUrl}}"],
+              "path": ["upgrade"]
+            },
+            "description": "Upgrade user plan features. Use for Billing Page."
+          },
+          "response": []
+        },
+        {
+          "name": "Downgrade / Cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/downgrade",
+              "host": ["{{baseUrl}}"],
+              "path": ["downgrade"]
+            },
+            "description": "Cancel subscription and revert to basic plan."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Utilities & Geo",
+      "description": "Helper endpoints",
+      "item": [
+        {
+          "name": "Get States",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/states",
+              "host": ["{{baseUrl}}"],
+              "path": ["states"]
+            },
+            "description": "Get list of US states. No auth required."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cities",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cities?q=Santa",
+              "host": ["{{baseUrl}}"],
+              "path": ["cities"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Santa",
+                  "description": "Search query"
+                }
+              ]
+            },
+            "description": "Search for cities. No auth required."
+          },
+          "response": []
+        },
+        {
+          "name": "Log Client Error",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"ReferenceError: x is not defined\",\n  \"url\": \"http://localhost/dashboard\",\n  \"stack\": \"Error: at line 123...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/log-client-error",
+              "host": ["{{baseUrl}}"],
+              "path": ["log-client-error"]
+            },
+            "description": "Log frontend errors to backend. Throttled endpoint. No auth required."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
