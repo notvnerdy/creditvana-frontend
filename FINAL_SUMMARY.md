@@ -280,10 +280,9 @@ Your React app is on the right track using PIF service!
 1. **IDIQ_OFFICIAL_API_WITH_TEST_CASES.md** - Official endpoints + test data
 2. **IDIQ_Official_Member_Service_Postman_Collection.json** - Member service collection
 3. **IDIQ_SERVICE_COMPARISON.md** - PIF vs Member comparison ⭐
-4. **IDIQ_API_Postman_Collection.json** - Your PIF service collection (previous)
-5. **POSTMAN_COLLECTION_GUIDE.md** - How to use collections (previous)
-6. **IDIQ_API_QUICK_REFERENCE.md** - Quick reference card (previous)
-7. **IDIQ_CURL_COMMANDS.md** - Terminal testing (previous)
+4. **CREDITVANA_BACKEND_API_GUIDE.md** - CreditVana backend API integration guide
+5. **CreditVana_Backend_API_Postman_Collection.json** - CreditVana backend Postman collection
+6. **QUICK_START_CREDITVANA_API.md** - Quick start guide
 
 ---
 
