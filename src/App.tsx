@@ -21,7 +21,7 @@ import NotFoundPage from './pages/NotFound.tsx';
 export default function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <AuthProvider>
           <Routes>
             {/* Auth routes – centered card layout, no app chrome */}
