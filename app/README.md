@@ -1,73 +1,78 @@
-# React + TypeScript + Vite
+# CreditVana Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Consumer credit monitoring dashboard built with React, TypeScript, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js 18+
+- npm 9+
+- CreditVana backend running at `http://localhost:8000`
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd app
+cp .env.example .env
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The app starts on `http://localhost:3000`. API requests proxy to `localhost:8000` in development.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Environment Variables
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `VITE_API_BASE_URL` | Backend API base URL | `http://localhost:8000/api/v1` |
+| `VITE_APP_NAME` | Application display name | `CreditVana` |
+| `VITE_APP_ENV` | Environment identifier | `development` |
+
+## Project Structure
+
 ```
+app/src/
+  api/client.ts              Centralized API client (token, errors, all endpoints)
+  components/
+    auth/ProtectedRoute.tsx   Route guard with KBA gate
+    common/                   Button, Input, Card, Alert, Modal, LoadingSpinner,
+                              EmptyState, StatusBadge, ErrorBoundary
+    credit/                   CreditScoreGauge, CreditFactorCard, TradelineItem,
+                              InquiryItem, PublicRecordItem
+    layout/                   AppLayout, AuthLayout, Header
+  contexts/AuthContext.tsx     Auth state (token, KBA, upgrade status)
+  hooks/useAuth.ts            Auth context consumer hook
+  pages/                      Login, Register, OTPLogin, ForgotPassword,
+                              KBAVerification, Dashboard, CreditReport,
+                              Settings, NotFound
+  types/index.ts              TypeScript interfaces for all API contracts
+  utils/
+    errorLogger.ts            Client-side error logging to backend
+    formatters.ts             Score rating, currency, dates, masking
+    validators.ts             Form validation (SSN, email, DOB, registration)
+```
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server with HMR |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Preview the production build locally |
+
+## API Integration
+
+All API calls go through `src/api/client.ts`. The client handles:
+
+- Bearer token injection from localStorage
+- Automatic 401 detection and session sign-out
+- Network error wrapping with user-friendly messages
+- Client-side error logging to `POST /log-client-error`
+
+The frontend never calls IDIQ directly. All credit data flows through the CreditVana backend.
+
+## User Flows
+
+1. **Register** -> KBA Verification -> Dashboard
+2. **Login** (password or OTP) -> Dashboard (or KBA if not yet verified)
+3. **Dashboard** -> Credit Report, Settings
+4. **Settings** -> Profile edit, password change, subscription, account deletion

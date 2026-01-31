@@ -1,0 +1,29 @@
+# Root
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript build
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
