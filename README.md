@@ -11,7 +11,6 @@ Consumer credit monitoring dashboard built with React, TypeScript, and Tailwind 
 ## Setup
 
 ```bash
-cd app
 cp .env.example .env
 npm install
 npm run dev
@@ -30,7 +29,7 @@ The app starts on `http://localhost:3000`. API requests proxy to `localhost:8000
 ## Project Structure
 
 ```
-app/src/
+src/
   api/client.ts              Centralized API client (token, errors, all endpoints)
   components/
     auth/ProtectedRoute.tsx   Route guard with KBA gate
