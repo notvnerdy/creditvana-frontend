@@ -14,6 +14,8 @@ import type {
   CreditScoreResponse,
   CreditReportResponse,
   SubscriptionResponse,
+  USState,
+  City,
   APIError,
 } from '../types/index.ts';
 import { logClientError } from '../utils/errorLogger.ts';
@@ -270,10 +272,80 @@ export async function downgradePlan(): Promise<SubscriptionResponse> {
 // Utility endpoints
 // ──────────────────────────────────────────────
 
-export async function getStates(): Promise<unknown[]> {
-  return request<unknown[]>('/states');
+/**
+ * Unwrap a list response that may arrive bare or wrapped in `{ data: [...] }`.
+ */
+function toList(payload: unknown): unknown[] {
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === 'object') {
+    const data = (payload as Record<string, unknown>).data;
+    if (Array.isArray(data)) return data;
+  }
+  return [];
 }
 
-export async function getCities(query: string): Promise<unknown[]> {
-  return request<unknown[]>(`/cities?q=${encodeURIComponent(query)}`);
+function readField(row: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
+/**
+ * Fetch the list of US states. The backend has been seen returning plain
+ * strings as well as objects, so both shapes are normalised here.
+ */
+export async function getStates(): Promise<USState[]> {
+  const payload = await request<unknown>('/states');
+
+  return toList(payload)
+    .map((entry): USState | null => {
+      if (typeof entry === 'string') {
+        const value = entry.trim();
+        if (!value) return null;
+        return value.length === 2
+          ? { code: value.toUpperCase(), name: value.toUpperCase() }
+          : { code: value.slice(0, 2).toUpperCase(), name: value };
+      }
+      if (entry && typeof entry === 'object') {
+        const row = entry as Record<string, unknown>;
+        const code = readField(row, ['code', 'abbreviation', 'abbr', 'value', 'state_code']);
+        const name = readField(row, ['name', 'label', 'state', 'text']);
+        if (!code && !name) return null;
+        return {
+          code: (code || name.slice(0, 2)).toUpperCase(),
+          name: name || code.toUpperCase(),
+        };
+      }
+      return null;
+    })
+    .filter((state): state is USState => state !== null);
+}
+
+/**
+ * Search cities by name fragment. Returns an empty list rather than throwing
+ * so type-ahead never blocks a form submission.
+ */
+export async function getCities(query: string): Promise<City[]> {
+  const payload = await request<unknown>(
+    `/cities?q=${encodeURIComponent(query)}`,
+  );
+
+  return toList(payload)
+    .map((entry): City | null => {
+      if (typeof entry === 'string') {
+        const name = entry.trim();
+        return name ? { name } : null;
+      }
+      if (entry && typeof entry === 'object') {
+        const row = entry as Record<string, unknown>;
+        const name = readField(row, ['name', 'city', 'label', 'text']);
+        if (!name) return null;
+        const state = readField(row, ['state', 'state_code', 'code']);
+        return state ? { name, state } : { name };
+      }
+      return null;
+    })
+    .filter((city): city is City => city !== null);
 }

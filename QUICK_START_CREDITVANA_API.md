@@ -3,7 +3,7 @@
 ## 🎉 You Got 2 Files
 
 ### 1. **CreditVana_Backend_API_Postman_Collection.json** 
-Complete Postman collection with **22 endpoints** ready for frontend integration
+Complete Postman collection with **20 endpoints** ready for frontend integration
 
 ### 2. **CREDITVANA_BACKEND_API_GUIDE.md**
 Comprehensive guide with code examples and integration instructions
@@ -12,9 +12,9 @@ Comprehensive guide with code examples and integration instructions
 
 ## 📦 Collection Contains
 
-### **22 Endpoints Across 6 Categories:**
+### **20 Endpoints Across 6 Categories:**
 
-#### 1. Authentication (7 endpoints)
+#### 1. Authentication (6 endpoints)
 - `POST /login` - Email/password login
 - `POST /register` - User registration + IDIQ enrollment
 - `POST /login-via-email` - Request OTP
@@ -41,7 +41,7 @@ Comprehensive guide with code examples and integration instructions
 - `POST /upgrade` - Upgrade to premium
 - `POST /downgrade` - Cancel/downgrade
 
-#### 6. Utilities (4 endpoints)
+#### 6. Utilities (3 endpoints)
 - `GET /states` - Get US states
 - `GET /cities?q=search` - Search cities
 - `POST /log-client-error` - Log errors
@@ -359,13 +359,13 @@ VUE_APP_API_URL=http://localhost:8000/api/v1
 
 | Category | Endpoints | Auth Required |
 |----------|-----------|---------------|
-| Authentication | 7 | Mostly No |
+| Authentication | 6 | Mostly No |
 | User Profile | 4 | Yes |
 | KBA Verification | 2 | Yes |
 | Credit Data | 3 | Yes |
 | Billing | 2 | Yes |
-| Utilities | 4 | No |
-| **Total** | **22** | Mixed |
+| Utilities | 3 | No |
+| **Total** | **20** | Mixed |
 
 ---
 

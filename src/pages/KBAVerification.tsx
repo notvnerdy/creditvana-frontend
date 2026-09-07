@@ -24,6 +24,7 @@ export default function KBAVerificationPage() {
   const [attempt, setAttempt] = useState(1);
   const [errorMessage, setErrorMessage] = useState('');
   const [round, setRound] = useState(1);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // If already verified, redirect to dashboard
   useEffect(() => {
@@ -32,36 +33,47 @@ export default function KBAVerificationPage() {
     }
   }, [kbaPassed, navigate]);
 
-  const fetchQuestions = useCallback(async () => {
+  /**
+   * Request a fresh set of questions. `notice` is preserved while the new
+   * questions load, so retry feedback stays on screen.
+   */
+  const reloadQuestions = useCallback((notice = '') => {
     setPageState('loading');
-    setErrorMessage('');
     setSelectedAnswers({});
-
-    try {
-      const data = await getVerificationQuestions();
-      if (!Array.isArray(data) || data.length === 0) {
-        setPageState('error');
-        setErrorMessage(
-          'No verification questions available. Please contact support.',
-        );
-        return;
-      }
-      setQuestions(data);
-      setPageState('questions');
-    } catch (err) {
-      const apiErr = err as APIError;
-      setPageState('error');
-      setErrorMessage(
-        apiErr.message || 'Unable to load verification questions. Please try again.',
-      );
-    }
+    setErrorMessage(notice);
+    setReloadKey((key) => key + 1);
   }, []);
 
   useEffect(() => {
-    if (!kbaPassed) {
-      fetchQuestions();
-    }
-  }, [kbaPassed, fetchQuestions]);
+    if (kbaPassed) return;
+
+    let cancelled = false;
+
+    getVerificationQuestions()
+      .then((data) => {
+        if (cancelled) return;
+        if (!Array.isArray(data) || data.length === 0) {
+          setPageState('error');
+          setErrorMessage(
+            'No verification questions available. Please contact support.',
+          );
+          return;
+        }
+        setQuestions(data);
+        setPageState('questions');
+      })
+      .catch((err: APIError) => {
+        if (cancelled) return;
+        setPageState('error');
+        setErrorMessage(
+          err.message || 'Unable to load verification questions. Please try again.',
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [kbaPassed, reloadKey]);
 
   const handleSelectAnswer = (questionId: string, answer: string) => {
     setSelectedAnswers((prev) => ({ ...prev, [questionId]: answer }));
@@ -94,9 +106,9 @@ export default function KBAVerificationPage() {
 
         case 'MoreQuestions':
           setRound((prev) => prev + 1);
-          setSelectedAnswers({});
-          // Fetch the next set of questions
-          fetchQuestions();
+          reloadQuestions(
+            'Thanks. A few more questions are required to finish verifying your identity.',
+          );
           break;
 
         case 'Incorrect': {
@@ -104,16 +116,13 @@ export default function KBAVerificationPage() {
           if (nextAttempt > MAX_ATTEMPTS) {
             setPageState('locked');
           } else {
+            const remaining = MAX_ATTEMPTS - attempt;
             setAttempt(nextAttempt);
-            setPageState('questions');
-            setSelectedAnswers({});
-            setErrorMessage(
-              `Some answers were incorrect. You have ${MAX_ATTEMPTS - attempt} attempt${
-                MAX_ATTEMPTS - attempt === 1 ? '' : 's'
+            reloadQuestions(
+              `Some answers were incorrect. You have ${remaining} attempt${
+                remaining === 1 ? '' : 's'
               } remaining.`,
             );
-            // Fetch fresh questions for retry
-            fetchQuestions();
           }
           break;
         }
@@ -241,14 +250,15 @@ export default function KBAVerificationPage() {
     );
   }
 
-  if (pageState === 'error' && questions.length === 0) {
+  // Any 'error' state means the loaded questions are no longer trustworthy.
+  if (pageState === 'error') {
     return (
       <div className="mx-auto max-w-xl px-4 py-16">
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <Alert variant="error" className="mb-6">
             {errorMessage || 'Something went wrong. Please try again.'}
           </Alert>
-          <Button onClick={fetchQuestions}>Retry</Button>
+          <Button onClick={() => reloadQuestions()}>Retry</Button>
         </div>
       </div>
     );

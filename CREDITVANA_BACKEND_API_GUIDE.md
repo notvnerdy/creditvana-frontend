@@ -3,7 +3,7 @@
 ## 📦 What You Got
 
 A complete Postman collection for **CreditVana Backend API v3** with:
-- ✅ **22 endpoints** organized in 6 categories
+- ✅ **20 endpoints** organized in 6 categories
 - ✅ Auto-save authentication tokens
 - ✅ Sample request bodies
 - ✅ Frontend integration ready
@@ -13,7 +13,7 @@ A complete Postman collection for **CreditVana Backend API v3** with:
 
 ## 🎯 Collection Structure
 
-### 1. Authentication (7 endpoints)
+### 1. Authentication (6 endpoints)
 - `POST /login` - Login with email/password
 - `POST /register` - Register new user + IDIQ enrollment
 - `POST /login-via-email` - Request OTP
@@ -675,7 +675,7 @@ VUE_APP_ENV=development
 ## ✅ Summary
 
 **You have:**
-- ✅ Complete Postman collection (22 endpoints)
+- ✅ Complete Postman collection (20 endpoints)
 - ✅ Auto-saved authentication tokens
 - ✅ Sample code for frontend integration
 - ✅ Test scenarios for all user flows

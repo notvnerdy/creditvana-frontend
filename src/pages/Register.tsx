@@ -4,8 +4,11 @@ import { useAuth } from '../hooks/useAuth.ts';
 import { register } from '../api/client.ts';
 import type { APIError } from '../types/index.ts';
 import Input from '../components/common/Input.tsx';
+import Select from '../components/common/Select.tsx';
 import Button from '../components/common/Button.tsx';
 import Alert from '../components/common/Alert.tsx';
+import { useStates } from '../hooks/useStates.ts';
+import { useCitySuggestions } from '../hooks/useCitySuggestions.ts';
 import {
   validateRegistration,
   formatSSNInput,
@@ -47,10 +50,12 @@ export default function RegisterPage() {
   const { handleAuthSuccess } = useAuth();
   const navigate = useNavigate();
 
+  const states = useStates();
   const [form, setForm] = useState<FormFields>(initialForm);
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+  const citySuggestions = useCitySuggestions(form.city);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -252,6 +257,7 @@ export default function RegisterPage() {
               label="City"
               name="city"
               autoComplete="address-level2"
+              list="city-suggestions"
               value={form.city}
               onChange={handleChange}
               error={errors.city}
@@ -259,34 +265,26 @@ export default function RegisterPage() {
               className="col-span-2"
               required
             />
-            <div>
-              <label
-                htmlFor="state"
-                className="mb-1 block text-sm font-medium text-slate-700"
-              >
-                State
-              </label>
-              <input
-                id="state"
-                name="state"
-                type="text"
-                autoComplete="address-level1"
-                placeholder="CA"
-                maxLength={2}
-                value={form.state}
-                onChange={handleChange}
-                disabled={loading}
-                required
-                className={`block w-full rounded-lg border px-3 py-2.5 text-sm uppercase text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:cursor-not-allowed disabled:bg-slate-50 ${
-                  errors.state
-                    ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-                    : 'border-slate-300 focus:border-blue-500 focus:ring-blue-200'
-                }`}
-              />
-              {errors.state && (
-                <p className="mt-1 text-sm text-red-600">{errors.state}</p>
-              )}
-            </div>
+            <datalist id="city-suggestions">
+              {citySuggestions.map((city) => (
+                <option key={city} value={city} />
+              ))}
+            </datalist>
+            <Select
+              label="State"
+              name="state"
+              autoComplete="address-level1"
+              placeholder="Select"
+              options={states.map((state) => ({
+                value: state.code,
+                label: state.code,
+              }))}
+              value={form.state}
+              onChange={handleChange}
+              error={errors.state}
+              disabled={loading}
+              required
+            />
             <Input
               label="ZIP"
               name="zip"

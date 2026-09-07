@@ -13,16 +13,20 @@ import {
 import type { UserProfile, APIError } from '../types/index.ts';
 import Card from '../components/common/Card.tsx';
 import Input from '../components/common/Input.tsx';
+import Select from '../components/common/Select.tsx';
 import Button from '../components/common/Button.tsx';
 import Alert from '../components/common/Alert.tsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.tsx';
 import Modal from '../components/common/Modal.tsx';
 import StatusBadge from '../components/common/StatusBadge.tsx';
 import { maskSSN, formatDate } from '../utils/formatters.ts';
+import { useStates } from '../hooks/useStates.ts';
+import { useCitySuggestions } from '../hooks/useCitySuggestions.ts';
 
 export default function SettingsPage() {
-  const { signOut, isUpgraded } = useAuth();
+  const { signOut, isUpgraded, setUpgraded } = useAuth();
   const navigate = useNavigate();
+  const states = useStates();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +45,7 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
+  const citySuggestions = useCitySuggestions(editForm.city);
 
   // Password change state
   const [pwForm, setPwForm] = useState({
@@ -58,13 +63,17 @@ export default function SettingsPage() {
 
   // Subscription state
   const [subLoading, setSubLoading] = useState(false);
-  const [subMessage, setSubMessage] = useState('');
+  const [subFeedback, setSubFeedback] = useState<{
+    variant: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   const fetchProfile = useCallback(async () => {
     setError('');
     try {
       const data = await getProfile();
       setProfile(data);
+      setUpgraded(data.is_upgraded === 1);
       setEditForm({
         first_name: data.first_name ?? '',
         last_name: data.last_name ?? '',
@@ -80,13 +89,15 @@ export default function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setUpgraded]);
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const handleEditChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleEditChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setEditForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -159,15 +170,25 @@ export default function SettingsPage() {
 
   const handleSubscriptionAction = async (action: 'upgrade' | 'downgrade') => {
     setSubLoading(true);
-    setSubMessage('');
+    setSubFeedback(null);
     try {
       const resp = action === 'upgrade' ? await upgradePlan() : await downgradePlan();
-      setSubMessage(resp.message || `Successfully ${action === 'upgrade' ? 'upgraded' : 'downgraded'} your plan.`);
+      // Reflect the new plan immediately, then reconcile with the server.
+      setUpgraded(action === 'upgrade');
+      setSubFeedback({
+        variant: 'success',
+        message:
+          resp.message ||
+          `Successfully ${action === 'upgrade' ? 'upgraded' : 'downgraded'} your plan.`,
+      });
       // Refresh profile to get updated status
-      fetchProfile();
+      await fetchProfile();
     } catch (err) {
       const apiErr = err as APIError;
-      setSubMessage(apiErr.message || `Unable to ${action} your plan.`);
+      setSubFeedback({
+        variant: 'error',
+        message: apiErr.message || `Unable to ${action} your plan.`,
+      });
     } finally {
       setSubLoading(false);
     }
@@ -207,7 +228,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <p className="text-xs font-medium text-slate-400">SSN</p>
-              <p className="text-sm text-slate-700">{maskSSN(profile.dob ? undefined : undefined)}</p>
+              <p className="text-sm text-slate-700">{maskSSN(profile.ssn)}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-slate-400">Date of Birth</p>
@@ -273,18 +294,28 @@ export default function SettingsPage() {
             <Input
               label="City"
               name="city"
+              list="settings-city-suggestions"
               value={editForm.city}
               onChange={handleEditChange}
               disabled={profileSaving}
               className="col-span-2"
             />
-            <Input
+            <datalist id="settings-city-suggestions">
+              {citySuggestions.map((city) => (
+                <option key={city} value={city} />
+              ))}
+            </datalist>
+            <Select
               label="State"
               name="state"
+              placeholder="Select"
+              options={states.map((state) => ({
+                value: state.code,
+                label: state.code,
+              }))}
               value={editForm.state}
               onChange={handleEditChange}
               disabled={profileSaving}
-              maxLength={2}
             />
             <Input
               label="ZIP"
@@ -369,13 +400,13 @@ export default function SettingsPage() {
           Manage your credit monitoring plan
         </p>
 
-        {subMessage && (
+        {subFeedback && (
           <Alert
-            variant={subMessage.toLowerCase().includes('unable') ? 'error' : 'success'}
+            variant={subFeedback.variant}
             className="mb-4"
-            onDismiss={() => setSubMessage('')}
+            onDismiss={() => setSubFeedback(null)}
           >
-            {subMessage}
+            {subFeedback.message}
           </Alert>
         )}
 

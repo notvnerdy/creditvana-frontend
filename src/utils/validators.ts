@@ -1,4 +1,14 @@
 /**
+ * Validate a two-letter state code. The registration form offers a state
+ * dropdown built from `GET /states`, so this only guards against a malformed
+ * value reaching the API — it deliberately does not pin the accepted set,
+ * which the backend owns.
+ */
+export function isValidStateCode(code: string | null | undefined): boolean {
+  return !!code && /^[A-Za-z]{2}$/.test(code.trim());
+}
+
+/**
  * Validate an email address.
  */
 export function isValidEmail(email: string): boolean {
@@ -116,6 +126,8 @@ export function validateRegistration(data: { [K in keyof RegistrationErrors]-?: 
   if (!data.street?.trim()) errors.street = 'Street address is required';
   if (!data.city?.trim()) errors.city = 'City is required';
   if (!data.state?.trim()) errors.state = 'State is required';
+  else if (!isValidStateCode(data.state))
+    errors.state = 'Select a state from the list';
 
   if (!data.zip?.trim()) errors.zip = 'ZIP code is required';
   else if (!isValidZip(data.zip)) errors.zip = 'Please enter a valid ZIP code';

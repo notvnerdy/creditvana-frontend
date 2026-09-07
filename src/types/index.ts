@@ -52,6 +52,7 @@ export interface UserProfile {
   email?: string;
   phone?: string;
   dob?: string;
+  ssn?: string;
   street?: string;
   city?: string;
   state?: string;
